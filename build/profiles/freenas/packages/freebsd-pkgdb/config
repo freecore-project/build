@@ -2,10 +2,10 @@
 
 name = freebsd-pkgdb
 comment = "FreeBSD pkg db files"
-desc = "FreeNAS OS (derived from FreeBSD)"
-www = http://www.freenas.org/
+desc = "FreeCORE OS (derived from FreeBSD)"
+www = https://freecore.org/
 origin = freenas/os
-maintainer = dev@ixsystems.com
+maintainer = dev@freecore.org
 prefix = /
 arch = freebsd:10:x86:64
 licenselogic = or
