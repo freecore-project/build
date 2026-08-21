@@ -1,0 +1,29 @@
+{
+  "lock_file": "/var/run/freecore-build.lock",
+  "process_guard": true,
+  "schema_version": 1,
+  "slots": {
+    "15.0": {
+      "branch": "freecore/15.0-maintenance",
+      "freebsd_release": "15.1-RELEASE",
+      "manifest_min_entries": 13,
+      "minimum_free_gib": 30,
+      "product": "FreeCORE",
+      "profile": "freenas",
+      "python": "3.11",
+      "root": "/root/truenas/build",
+      "version": "15.0"
+    },
+    "15.1": {
+      "branch": "freecore/15.1-stable",
+      "freebsd_release": "15.1-RELEASE",
+      "manifest_min_entries": 13,
+      "minimum_free_gib": 30,
+      "product": "FreeCORE",
+      "profile": "freenas",
+      "python": "3.12",
+      "root": "/root/truenas/build-15.1",
+      "version": "15.1"
+    }
+  }
+}

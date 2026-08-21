@@ -181,6 +181,8 @@ def main():
             checkout_repo(cwd, i)
 
     generate_manifest()
+    if not e('${CHECKOUT_ONLY}') and not e('${CHECKOUT_EXCLUDE}'):
+        sh('${BUILD_TOOLS}/materialize-release-sources.py')
     setfile('${BE_ROOT}/.pulled', e('${PRODUCT}'))
     return 0
 
