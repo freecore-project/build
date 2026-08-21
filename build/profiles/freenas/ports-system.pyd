@@ -24,10 +24,7 @@
 #
 
 ports += "ports-mgmt/pkg"
-ports += {
-    "name": "sysutils/openzfs",
-    "options": ["OPTIONS_FILE_SET+=PYTHON"]
-}
+# openzfs port removed — FreeBSD 15 ships OpenZFS 2.4 in-base
 ports += "dns/bind-tools"
 ports += "dns/dnsmasq"
 ports += "textproc/jq"
@@ -45,13 +42,12 @@ ports += "security/stunnel"
 ports += "comms/lrzsz"
 ports += "sysutils/kiconvtool"
 ports += "sysutils/screen"
-ports += "sysutils/iohyve"
 ports += "sysutils/vm-bhyve"
 ports += "sysutils/pciutils"
 ports += "net/socat"
 ports += "sysutils/pv"
 ports += "sysutils/openseachest"
-ports += "dns/inadyn-troglobit"
+ports += "dns/inadyn"
 ports += "editors/nano"
 ports += {
     "name": "editors/jed",
@@ -74,7 +70,8 @@ ports += {
 ports += "misc/cpuid"
 ports += "net-mgmt/clog"
 ports += "net/mosh"
-ports += "net/wireguard"
+# net/wireguard removed — if_wg kernel module in FreeBSD 13.2+ base
+ports += "net/wireguard-tools"
 ports += "net-mgmt/sipcalc"
 
 ports += "security/cyrus-sasl2-gssapi"
@@ -86,12 +83,21 @@ ports += {
         "OPTIONS_FILE_SET+=NSS"
     ]
 }
+# HPN/NONECIPHER dropped so we can move to openssh 10.4p1: stock 10.4p1 marks the
+# port DEPRECATED with EXPIRATION_DATE=2026-10-01 whenever either is set, and an
+# expired port is deleted from the tree.  These backed replication's
+# cipher=DISABLED (zettarepl passes the HPN-only -ononeenabled/-ononeswitch), but
+# that is unused here -- both replication tasks are transport=LOCAL and there are
+# zero SSH keychain credentials -- and AES-NI does aes-128-ctr at 3.78 GB/s/core
+# vs 1.25 GB/s for 10GbE, so cipher=FAST already covers the use case.  zettarepl
+# probes the flag at runtime and raises a clear error if it is ever selected.
+# UNSET explicitly rather than merely removed, so a stale options file cannot
+# resurrect them.  See the internal development record.  Operator decision 2026-08-02.
 ports += {
     "name": "security/openssh-portable",
     "options": [
-        "OPTIONS_FILE_SET+=HEIMDAL_BASE",
-        "OPTIONS_FILE_SET+=HPN",
-        "OPTIONS_FILE_SET+=NONECIPHER",
+        "OPTIONS_FILE_UNSET+=HPN",
+        "OPTIONS_FILE_UNSET+=NONECIPHER",
     ]
 }
 ports += {
@@ -110,11 +116,8 @@ ports += {
 }
 ports += "lang/python3"
 ports += "lang/python"
-ports += {
-    "name": "lang/python39-debugging",
-    "install": False,
-}
-ports += "sysutils/scanlnk"
+ports += "lang/python311"
+# scanlnk removed — vanished from ports tree
 ports += "sysutils/iocage"
 ports += "security/pam_mkhomedir"
 ports += {
@@ -124,19 +127,11 @@ ports += {
 ports += "shells/ksh93"
 ports += "shells/mksh"
 ports += "shells/zsh"
-ports += {
-    "name": "shells/scponly",
-    "options": [
-        "OPTIONS_FILE_SET+=GFTP",
-        "OPTIONS_FILE_SET+=RSYNC",
-        "OPTIONS_FILE_SET+=SCP",
-        "OPTIONS_FILE_SET+=WINSCP"
-    ]
-}
-ports += "sysutils/e2fsprogs"
-ports += "sysutils/fusefs-libs"
-ports += "sysutils/fusefs-ntfs"
-ports += "sysutils/fusefs-s3fs"
+ports += "filesystems/e2fsprogs"
+ports += "filesystems/fusefs-libs"
+ports += "filesystems/rar2fs"
+ports += "filesystems/ntfs"
+ports += "filesystems/s3fs"
 ports += "sysutils/smartmontools"
 ports += "net/libdnet"
 ports += {
@@ -155,7 +150,7 @@ ports += {
         "OPTIONS_FILE_SET+=HTTP_SSL",
         "OPTIONS_FILE_SET+=HTTP_UPLOAD",
         "OPTIONS_FILE_SET+=HTTP_UPLOAD_PROGRESS",
-        "OPTIONS_FILE_SET+=SPDY",
+        "OPTIONS_FILE_SET+=HTTP_V2",
         "OPTIONS_FILE_SET+=STATUS"
     ]
 }
@@ -169,10 +164,13 @@ ports += {
 }
 ports += {
     "name": "sysutils/nut",
-    "options": ["OPTIONS_FILE_UNSET+=NEON"]
+    # DEV installs upsclient.h, required by net-mgmt/collectd5 NUTUPS plugin.
+    "options": [
+        "OPTIONS_FILE_UNSET+=NEON",
+        "OPTIONS_FILE_SET+=DEV"
+    ]
 }
 #ports += "devel/gio-fam-backend"
-ports += "sysutils/jailme"
 
 # Reporting ports
 ports += {
@@ -202,6 +200,12 @@ ports += {
 }
 ports += {
     "name": "net-mgmt/collectd5",
+    # NUTUPS re-enabled: middleware's collectd.conf template unconditionally
+    # emits LoadPlugin nut on FreeBSD (etc_files/local/collectd.conf:69), and
+    # scrapes NUT metrics via <Plugin "nut"> when the UPS service is up.
+    # Depends on upsclient.h from sysutils/nut built with DEV (set above).
+    # STATGRAB is not a valid option in net-mgmt/collectd5 (not in
+    # OPTIONS_GROUP_INPUT); UNSET is a no-op but harmless.
     "options": [
         "OPTIONS_FILE_UNSET+=BIND",
         "OPTIONS_FILE_UNSET+=SNMP",
@@ -211,23 +215,25 @@ ports += {
         "OPTIONS_FILE_SET+=NUTUPS",
         "OPTIONS_FILE_SET+=PYTHON",
         "OPTIONS_FILE_SET+=RRDTOOL",
-        "OPTIONS_FILE_SET+=STATGRAB",
+        "OPTIONS_FILE_UNSET+=STATGRAB",
         "OPTIONS_FILE_SET+=XML"
     ]
 }
 
 ports += "converters/base64"
 ports += {
-    "name": "emulators/mtools",
+    "name": "filesystems/mtools",
     "options": ["OPTIONS_FILE_UNSET+=X11"]
 }
-ports += "sysutils/arcconf"
-ports += "sysutils/tw_cli"
+# arcconf removed — Adaptec distfile no longer fetchable (download.adaptec.com
+# unreachable, FreeBSD distcache 404). No TrueNAS hardware path requires it.
+# tw_cli removed — its closed Broadcom binary requires a manual download and its
+# licence prohibits redistribution, so it cannot ship in a public-source image.
 ports += "sysutils/megacli"
-ports += "sysutils/areca-cli"
+# areca-cli removed — vanished from ports tree
 ports += "sysutils/hptcli"
 ports += {
-    "name": "net/py-ldap",
+    "name": "net/py-python-ldap",
     "options": ["OPTIONS_FILE_SET+=SASL"]
 }
 ports += {
@@ -239,7 +245,7 @@ ports += {
     "options": ["OPTIONS_FILE_SET+=LIBEVENT2"]
 }
 ports += {
-    "name": "net/netatalk3",
+    "name": "net/netatalk4",
     "options": [
         "OPTIONS_FILE_SET+=PAM",
         "OPTIONS_FILE_SET+=ACL",
@@ -266,9 +272,10 @@ ports += {
     ]
 }
 ports += "sysutils/ipmitool"
+ports += "sysutils/ugreen-led-ctl"
 ports += "devel/py-daemon"
 ports += "www/wgetpaste"
-ports += "sysutils/sedutil"
+ports += "security/sedutil"
 ports += "sysutils/sg3_utils"
 ports += "sysutils/smp_utils"
 ports += "net/trafshow"
@@ -278,54 +285,107 @@ ports += {
     "name": "security/ca_root_nss",
     "options": ["OPTIONS_FILE_SET+=ETCSYMLINK"]
 }
-ports += "ftp/curl"
+# curl: pin GSSAPI off.  Upstream (8.21.0+) re-enabled GSSAPI_BASE and made
+# the default OS-release conditional:
+#   OPTIONS_DEFAULT_15= GSSAPI_${${SSL_DEFAULT} == base :?BASE :NONE}
+# config.pyd sets DEFAULT_VERSIONS "ssl=base", so that resolves to
+# GSSAPI_BASE and would link base Heimdal into curl -- and into its seven
+# dependents (collectd5, syslog-ng, powerman, libvirt, git-lite,
+# fusefs-s3fs, apache24).  This appliance does not use GSSAPI, so keep the
+# pre-8.21 posture explicitly rather than inheriting whatever upstream
+# defaults to next.  Operator decision 2026-08-02.
+ports += {
+    "name": "ftp/curl",
+    "options": [
+        "OPTIONS_FILE_SET+=GSSAPI_NONE",
+        "OPTIONS_FILE_UNSET+=GSSAPI_BASE",
+        "OPTIONS_FILE_UNSET+=GSSAPI_MIT"
+    ]
+}
 
 ports += {
     "name": "dns/samba-nsupdate",
     "options": ["OPTIONS_FILE_SET+=IPV6"]
 }
+# Samba 4.19 waf system-library check requires the python bindings
+# (pyldb-util.cpython-311, py-tevent), which are built only when these
+# transitive deps have their PYTHON option explicitly set in the saved
+# options file. Default-on is not enough under poudriere.
 ports += {
-    "name": "net/samba",
+    "name": "databases/ldb28",
+    "options": ["OPTIONS_FILE_SET+=PYTHON3"]
+}
+ports += {
+    "name": "devel/tevent",
+    "options": ["OPTIONS_FILE_SET+=PYTHON"]
+}
+# py-middlewared RUN_DEPENDS pins sqlalchemy14 (13.3-era, preserved in 15.0).
+# databases/py-alembic 1.15.2 (2026Q1) added an SQLALCHEMY radio option that
+# defaults to SQLALCHEMY20, pulling py-sqlalchemy20 transitively. Both
+# sqlalchemy ports declare CONFLICTS_INSTALL against each other and install
+# examples to the same /usr/local/share/examples/py311-sqlalchemy dir, so
+# simultaneous install into the build jail fails during py-middlewared
+# run-depends. Force alembic to the SQLALCHEMY14 variant so both dep paths
+# agree on sqlalchemy14.
+ports += {
+    "name": "databases/py-alembic",
     "options": [
-        "OPTIONS_FILE_SET+=ACL_SUPPORT",
+        "OPTIONS_FILE_UNSET+=SQLALCHEMY20",
+        "OPTIONS_FILE_SET+=SQLALCHEMY14",
+    ]
+}
+ports += {
+    "name": "net/samba424",
+    # Samba 4.24.5 rebase (the internal security review, the internal development record + the internal development record);
+    # option set carried from the validated samba419 config.
+    # Removed 11 nonexistent options from old net/samba config:
+    #   ACL_SUPPORT, AIO_SUPPORT, DEBUG, DNSUPDATE, EXP_MODULES,
+    #   PAM_SMBPASS, PTHREADPOOL, SPOTLIGHT, NSUPDATE, BIND99, BIND910
+    # Added: PROFILE, PYTHON3, GSSAPI_BUILTIN, AVAHI
+    # LIBZFS is now hardcoded --with-libzfs in our modified port Makefile.
+    # LIBZFS option kept here for compatibility but has no effect.
+    # FRUIT (Apple SMB extensions, Time Machine-over-SMB) is default ON and
+    # requires mDNS; AVAHI is what TrueNAS 13.3 shipped, preserves the
+    # Time Machine advertisement path. Keep MDNSRESPONDER unset so we
+    # don't pull a second mDNS stack.
+    # CLUSTER off per operator decision 2026-08-16 (the internal development record): FreeCORE
+    # ships no HA, so the CTDB surface stops shipping entirely.
+    "options": [
         "OPTIONS_FILE_SET+=ADS",
         "OPTIONS_FILE_UNSET+=AD_DC",
-        "OPTIONS_FILE_SET+=AIO_SUPPORT",
-        "OPTIONS_FILE_SET+=CLUSTER",
+        "OPTIONS_FILE_UNSET+=CLUSTER",
         "OPTIONS_FILE_UNSET+=CUPS",
-        "OPTIONS_FILE_UNSET+=DEBUG",
         "OPTIONS_FILE_UNSET+=DEVELOPER",
-        "OPTIONS_FILE_SET+=DNSUPDATE",
         "OPTIONS_FILE_SET+=DOCS",
-        "OPTIONS_FILE_SET+=EXP_MODULES",
         "OPTIONS_FILE_SET+=FAM",
         "OPTIONS_FILE_SET+=LDAP",
         "OPTIONS_FILE_SET+=LIBZFS",
         "OPTIONS_FILE_SET+=MANPAGES",
-        "OPTIONS_FILE_SET+=PAM_SMBPASS",
-        "OPTIONS_FILE_SET+=PTHREADPOOL",
+        "OPTIONS_FILE_SET+=PROFILE",
+        "OPTIONS_FILE_SET+=PYTHON3",
         "OPTIONS_FILE_SET+=QUOTAS",
-        "OPTIONS_FILE_SET+=SPOTLIGHT",
         "OPTIONS_FILE_SET+=SYSLOG",
         "OPTIONS_FILE_SET+=UTMP",
-        "OPTIONS_FILE_SET+=NSUPDATE",
-        "OPTIONS_FILE_UNSET+=BIND99",
-        "OPTIONS_FILE_UNSET+=BIND910",
-        "OPTIONS_FILE_UNSET+=AVAHI",
+        "OPTIONS_FILE_SET+=GSSAPI_BUILTIN",
+        "OPTIONS_FILE_SET+=AVAHI",
         "OPTIONS_FILE_UNSET+=MDNSRESPONDER",
     ]
 }
+ports += "net/py-wsdd"
 
 ports += "sysutils/lsof"
 ports += "sysutils/grub2-bhyve"
-ports += "sysutils/beadm"
-ports += "sysutils/throttle"
+# beadm removed — replaced by bectl in FreeBSD 15 base
+# throttle removed — vanished from ports tree; pv already included
 ports += "misc/xtail"
-ports += "sysutils/uefi-edk2-bhyve"
-ports += "sysutils/uefi-edk2-bhyve-csm"
+ports += {
+    "name": "sysutils/edk2@bhyve",
+    "package": "edk2-bhyve",
+}
+# uefi-edk2-bhyve-csm removed — CSM/legacy BIOS obsolete
 ports += "benchmarks/fio"
 ports += "sysutils/cmdwatch"
-ports += "sysutils/devcpu-data"
+ports += "sysutils/cpu-microcode"
 ports += "sysutils/htop"
 ports += "sysutils/mcelog"
 ports += {
@@ -336,15 +396,7 @@ ports += "devel/py-xattr"
 ports += "converters/convmv"
 
 #ports += "sysutils/ipfs-go"
-ports += "www/minio"
-ports += {
-    "name": "www/minio-client",
-    "options": ["OPTIONS_FILE_UNSET+=MC"]
-}
-ports += {
-    "name": "www/py-ws4py",
-    "options": ["OPTIONS_FILE_UNSET+=CHERRYPY", "OPTIONS_FILE_UNSET+=GEVENT"]
-}
+ports += "www/py-websocket-client"
 ports += "misc/mmv"
 ports += "misc/mbuffer"
 ports += {
@@ -355,13 +407,42 @@ ports += "sysutils/ncdu"
 
 # There ports are all vm related.
 ports += "www/novnc"
-ports += "www/novnc-websockify"
+ports += "devel/py-websockify"
 ports += "net/libvncserver"
-ports += "devel/libhyve-remote"
+# libhyve-remote removed — broken since 2020, libvncserver+novnc cover bhyve console
 
-ports += "graphics/drm-kmod"
+# GPU rendering shared by jails. bhyve PCI passthrough is exclusive to one VM;
+# DRM render nodes (/dev/dri/renderD*) are multi-client by design, so a jail
+# granted the node through a devfs ruleset renders on the host kernel driver
+# alongside every other jail. Not auto-loaded — nothing here touches kld_list
+# or the loader, so an image with the module unloaded behaves exactly as before.
+# Operators enable it per host through System > Tunables.
+#
+# The driver is named explicitly rather than via the graphics/drm-kmod metaport,
+# and that is deliberate. The metaport carries an UNCONDITIONAL
+#   RUN_DEPENDS= gpu-firmware-kmod
+# which is itself a metaport pulling 140 firmware packages (amd + radeon +
+# intel, ~96 MB of distfiles) — directly against the "no firmware packages"
+# decision on the internal development record. drm-66-kmod has no *_DEPENDS at all, and it is exactly
+# what the metaport resolves to here: its gate is OSVERSION >= 1500031 on amd64
+# and our base is 1501000 (freebsd-src sys/sys/param.h). The specific
+# gpu-firmware-amd-kmod-<family> package is a one-line follow-up once a card is
+# chosen.
+#
+# This is the first third-party kernel module in the selected set. It is
+# LinuxKPI- and kernel-ABI-coupled: any base sync must rebuild it, and the
+# verification that matters is that the built module LOADS on the image kernel,
+# not merely that the package exists.
+ports += "graphics/drm-66-kmod"
+
+# TrueNAS 13.3 shipped external Aquantia and Realtek drivers. FreeBSD 15 has no
+# in-tree Atlantic driver, so retain the port; its pinned version carries the
+# required FB15 KPI patches. For Realtek, keep the in-kernel re(4) driver for
+# legacy chips and add rge(4) for RTL8125/8126/8127 multi-gigabit adapters.
+# Do not also select realtek-re-kmod: it installs another if_re.ko and would
+# create an avoidable collision with the driver already built into the kernel.
 ports += "net/aquantia-atlantic-kmod"
-ports += "net/realtek-re-kmod"
+ports += "net/realtek-rge-kmod"
 
 if DEBUG:
 	ports += "misc/py-pexpect"

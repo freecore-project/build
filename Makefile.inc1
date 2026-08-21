@@ -104,15 +104,15 @@ clean-ui-package:
 
 clean-freenas-packages: clean-ui-package
 	@${MK} clean-package p=freenas
-	@${MK} clean-package p=py34-freenas
-	@${MK} clean-package p=py34-fnutils
-	@${MK} clean-package p=py34-libzfs
-	@${MK} clean-package p=py34-bsd
-	@${MK} clean-package p=py34-netif
-	@${MK} clean-package p=py34-cam
-	@${MK} clean-package p=py34-ws4py
-	@${MK} clean-package p=py34-SMART
-	@${MK} clean-package p=py34-ipfs-api
+	@${MK} clean-package p=py311-freenas
+	@${MK} clean-package p=py311-fnutils
+	@${MK} clean-package p=py311-libzfs
+	@${MK} clean-package p=py311-bsd
+	@${MK} clean-package p=py311-netif
+	@${MK} clean-package p=py311-cam
+	@${MK} clean-package p=py311-websocket-client
+	@${MK} clean-package p=py311-SMART
+	@${MK} clean-package p=py311-ipfs-api
 	@${MK} clean-package p=nss-freenas
 	@${MK} clean-package p=pam-freenas
 	@${MK} clean-package p=iocage-devel
@@ -210,7 +210,7 @@ tag:
 
 tests:
 	@${MK} cdrom UNATTENDED_CONFIG=tests/freenas/install.conf
-	@env PYTHONPATH=${BUILD_ROOT}/build/lib python3.4 ${BUILD_ROOT}/tests/freenas/run.py
+	@env PYTHONPATH=${BUILD_ROOT}/build/lib python3 ${BUILD_ROOT}/tests/freenas/run.py
 
 ports: check-root
 	@${BUILD_TOOLS}/build-ports.py
