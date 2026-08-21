@@ -31,5 +31,8 @@ port_trees = [
     "${BE_ROOT}/webui/ports",
 ]
 
+package_ports = [
+]
+
 binary_packages = [
 ]
