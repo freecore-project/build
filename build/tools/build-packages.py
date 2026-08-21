@@ -54,7 +54,12 @@ def read_repo_manifest():
         o.write(i)
 
     pkgversion = hashlib.md5('-'.join(versions).encode('ascii')).hexdigest()
-    sequence = pkgversion
+    # The publisher's Sequences table is globally unique, so the same source
+    # heads promoted onto a second train (Nightlies build re-cut as RELEASE
+    # on STABLE) must not reuse the bare source hash as their sequence.
+    sequence = hashlib.md5(
+        '-'.join(versions + [e('${TRAIN}') or 'FreeNAS', e('${VERSION}') or '']).encode('ascii')
+    ).hexdigest()
 
 
 def build_pkgtools():
