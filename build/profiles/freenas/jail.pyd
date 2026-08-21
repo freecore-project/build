@@ -56,6 +56,26 @@ copy += {
 }
 
 copy += {
+    "source": "${BE_ROOT}/py-cam",
+    "dest": "/usr/nas_source/py-cam"
+}
+
+copy += {
+    "source": "${BE_ROOT}/py-netif",
+    "dest": "/usr/nas_source/py-netif"
+}
+
+copy += {
+    "source": "${BE_ROOT}/py-libzfs",
+    "dest": "/usr/nas_source/py-libzfs"
+}
+
+copy += {
+    "source": "${BE_ROOT}/samba",
+    "dest": "/usr/nas_source/samba"
+}
+
+copy += {
     "source": "${BE_ROOT}/iocage",
     "dest": "/usr/iocage_src"
 }

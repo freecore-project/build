@@ -23,59 +23,102 @@
 # SUCH DAMAGE.
 #
 
+# Source components for a FreeCORE build. Generated from the matching
+# build/config/freecore-release-sources.json inventory; edit that manifest,
+# never this derived checkout map.
+
 repos += {
     "name": "os",
     "path": "os",
-    "url": "https://github.com/freenas/os.git",
-    "branch": "truenas/13-stable"
+    "url": "https://github.com/freebsd/freebsd-src.git",
+    "branch": "releng/15.1",
+    "commit": "0f691888dc56a068f74c213bc87b32939b6b354e"
 }
 
 repos += {
     "name": "freenas",
     "path": "freenas",
-    "url": "http://github.com/freenas/freenas.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/middleware.git",
+    "branch": "main",
+    "commit": "1d5a3db3f66c8cda1af1b293986fd2371f0d429d"
 }
-
 
 repos += {
     "name": "webui",
     "path": "webui",
-    "url": "http://github.com/freenas/webui.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/webui.git",
+    "branch": "main",
+    "commit": "24fa7e7707209f8bd8206cc99ecc5ea32273d0d8"
 }
 
 repos += {
     "name": "ports",
     "path": "ports",
-    "url": "https://github.com/freenas/ports.git",
-    "branch": "truenas/13.0-stable"
-}
-
-repos += {
-    "name" :"py-licenselib",
-    "path": "py-licenselib",
-    "url": "https://github.com/freenas/licenselib.git",
-    "branch": "truenas/13.0-stable"
-}
-
-repos += {
-    "name": "freenas-pkgtools",
-    "path": "freenas-pkgtools",
-    "url": "https://github.com/freenas/freenas-pkgtools.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/ports.git",
+    "branch": "source/15.0-U1",
+    "commit": "6044c3ab63c2f6d58a1256300b2d21b9225eb2a4"
 }
 
 repos += {
     "name": "py-bsd",
     "path": "py-bsd",
-    "url": "https://github.com/freenas/py-bsd.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/py-bsd.git",
+    "branch": "main",
+    "commit": "7a193df164d795b5ec7da2ebb5002697c636cf4b"
+}
+
+repos += {
+    "name": "py-cam",
+    "path": "py-cam",
+    "url": "https://codeberg.org/freecore/py-cam.git",
+    "branch": "main",
+    "commit": "22ee34c95b98127d8a8d2c726f2bf7ea2055b9cb"
+}
+
+repos += {
+    "name": "py-netif",
+    "path": "py-netif",
+    "url": "https://codeberg.org/freecore/py-netif.git",
+    "branch": "main",
+    "commit": "f077fc3b269c3fa10a15776c97effd03805e9764"
+}
+
+repos += {
+    "name": "py-libzfs",
+    "path": "py-libzfs",
+    "url": "https://codeberg.org/freecore/py-libzfs.git",
+    "branch": "main",
+    "commit": "38b256dbf74a6bfa7c878fbe4976ad93f08558cb"
+}
+
+repos += {
+    "name": "samba",
+    "path": "samba",
+    "url": "https://github.com/truenas/samba.git",
+    "branch": "truenas/v4-24-stable",
+    "commit": "e7df0a31a95db824642546bb32ad73b25fcc660a"
+}
+
+repos += {
+    "name": "py-licenselib",
+    "path": "py-licenselib",
+    "url": "https://github.com/truenas/licenselib.git",
+    "branch": "truenas/13.3-stable",
+    "commit": "4a264d3d9210d6b46e3ac97b31357024c6c124f6"
+}
+
+repos += {
+    "name": "freenas-pkgtools",
+    "path": "freenas-pkgtools",
+    "url": "https://codeberg.org/freecore/freenas-pkgtools.git",
+    "branch": "main",
+    "commit": "ed570f4d43dcc0a00ca8bfeda28c87b94d498aeb"
 }
 
 repos += {
     "name": "iocage",
     "path": "iocage",
-    "url": "https://github.com/freenas/iocage.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/iocage.git",
+    "branch": "main",
+    "commit": "b253fea1e91e7e050dc621b29e53052b0c82470b"
 }

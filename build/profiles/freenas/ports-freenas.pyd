@@ -54,22 +54,8 @@ ports += {
     ]
 }
 
-ports += {
-    "name": "freenas/freenas-migrate93",
-    "options": [
-        "PRODUCT_VERSION=${VERSION}",
-        "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}",
-    ]
-}
-
-ports += {
-    "name": "freenas/freenas-files",
-    "options": [
-        "PRODUCT_VERSION=${VERSION}",
-        "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}",
-        "REVISION=" + freenas_git_rev
-    ]
-}
+# freenas-migrate93 removed — 9.x migration obsolete for TrueNAS 15
+# Duplicate freenas-files entry removed
 
 # TODO: Temporarily we allow passing product to webui port but this support would be removed
 #  once webui gets in shape for FN12
@@ -93,8 +79,6 @@ ports += {
     ]
 }
 
-
-
 ports += {
     "name": "freenas/py-middlewared",
     "options": [
@@ -113,15 +97,6 @@ ports += {
     ]
 }
 
-#ports += {
-#    "name": "freenas/arcsas",
-#    "options": [
-#        "PRODUCT_VERSION=${VERSION}",
-#        "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}",
-#        "REVISION=${GIT_REVISION}"
-#    ]
-#}
-
 dedicated_repo_ports = [
     "py-licenselib", "py-bsd", "freenas-pkgtools",
 ]
@@ -137,5 +112,26 @@ for iter_port in dedicated_repo_ports:
             "PRODUCT_VERSION=${VERSION}",
             "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}",
             "REVISION="+ iter_port_git_rev
+        ]
+    }
+
+# C extension ports from dedicated repos (non-freenas category paths)
+dedicated_cext_ports = [
+    ("py-cam", "devel/py-cam"),
+    ("py-netif", "net/py-netif"),
+    ("py-libzfs", "filesystems/py-libzfs"),
+]
+
+for repo_name, port_path in dedicated_cext_ports:
+    cext_git_rev = sh("git -C ${BE_ROOT}/{0} log -1 --pretty=format:%ct".format(repo_name)) \
+        if exists("${BE_ROOT}/{0}".format(repo_name)) \
+        else "0"
+
+    ports += {
+        "name": port_path,
+        "options": [
+            "PRODUCT_VERSION=${VERSION}",
+            "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}",
+            "REVISION=" + cext_git_rev
         ]
     }
