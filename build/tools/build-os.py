@@ -27,8 +27,10 @@
 #####################################################################
 
 import os
+import shutil
 import sys
 from dsl import load_profile_config
+from kernel_identity import expected_ident, stale_kernel_obj
 from utils import sh, sh_str, env, e, objdir, info, debug, pathjoin
 
 
@@ -101,6 +103,29 @@ def create_kernel_config():
             f.write(f2.read())
 
 
+def kernel_identity_guard(kconf):
+    # the internal development record: NO_KERNELCLEAN keeps vers.c when an os move touches
+    # no kernel-proper object; drop the KERNCONF obj dir so newvers.sh restamps.
+    if env('SKIP_KERNEL_IDENTITY_GUARD'):
+        info('Skipping kernel identity guard as instructed by setting SKIP_KERNEL_IDENTITY_GUARD')
+        return
+    expect = expected_ident(e('${OS_ROOT}'))
+    if expect is None:
+        info('Kernel identity guard: no git identity for {0}, not checked', e('${OS_ROOT}'))
+        return
+    kobj = os.path.join(
+        e('${OBJDIR}'),
+        os.path.realpath(e('${OS_ROOT}')).lstrip('/'),
+        '{0}.{1}'.format(env('TARGET', 'amd64'), arch),
+        'sys',
+        kconf
+    )
+    stale, baked = stale_kernel_obj(os.path.join(kobj, 'vers.c'), expect)
+    if stale:
+        info('kernel identity moved {0} -> {1}: clean kernel rebuild of {2}', baked, expect, kconf)
+        shutil.rmtree(kobj)
+
+
 def buildkernel(kconf, modules, log):
     modules = ' '.join(modules)
     info('Building kernel {0} from {1}', kconf, e('${OS_ROOT}'))
@@ -133,7 +158,7 @@ def buildworld():
         "-j {0}".format(makejobs),
         "-C ${OS_ROOT}",
         "__MAKE_CONF={0}".format(makeconfbuild),
-        "NOCLEAN=YES",
+        "NO_CLEAN=YES",
         "buildworld",
         log=worldlog
     )
@@ -205,5 +230,7 @@ if __name__ == '__main__':
     create_make_conf_build()
     create_kernel_config()
     buildworld()
+    kernel_identity_guard(e('${KERNCONF}'))
     buildkernel(e('${KERNCONF}'), config['kernel_modules'], kernlog)
+    kernel_identity_guard(e('${KERNCONF}-DEBUG'))
     buildkernel(e('${KERNCONF}-DEBUG'), config['kernel_modules'], kerndebuglog)

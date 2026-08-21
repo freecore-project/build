@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Batch installation script for FreeNAS/TrueNAS.
 # This is intended to be run as part of the build tests.
 # It takes one option, and at least one argument.
