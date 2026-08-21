@@ -1,0 +1,44 @@
+FreeCORE
+========
+
+FreeCORE carries the TrueNAS® CORE 13.3 system forward as an independently
+maintained operating system on FreeBSD. It is not affiliated with or endorsed
+by iXsystems, Inc. Thanks to the FreeNAS and TrueNAS contributors whose
+open-source work made this possible.
+
+
+Upstream lineage
+----------------
+
+This repository begins at a commit from the public upstream repository named in
+its README. That upstream history is preserved verbatim: original commits,
+original authors, original dates. Every FreeCORE change sits above it as clearly
+labelled commits.
+
+To see the entire FreeCORE delta for this repository:
+
+    git log --oneline <base>..HEAD
+    git diff <base>..HEAD
+
+The base commit is recorded in the README.
+
+
+Licensing
+---------
+
+FreeCORE does not relicense anything. Each repository keeps the licence it
+inherited, and all upstream copyright notices and licence texts are preserved
+unchanged. Removing them would be the violation; de-branding a fork means
+trademarks come out of user-facing chrome, not that licence headers come out of
+source files.
+
+Proprietary and Enterprise-licensed components that were present in upstream
+TrueNAS CORE have been removed rather than redistributed. Where callers needed a
+surface to keep working, they were replaced with stubs that report the honest
+unlicensed, non-iX-hardware state.
+
+
+Trademarks
+----------
+
+See TRADEMARKS.md.
