@@ -28,7 +28,8 @@
 
 import sys
 import os
-from utils import sh, e, objdir, info, import_function
+from utils import sh, e, env, objdir, info, error, import_function
+from kernel_identity import expected_ident, ident_matches, baked_version
 
 
 installworldlog = objdir('logs/dest-installworld')
@@ -37,6 +38,22 @@ installkernellog = objdir('logs/dest-installkernel')
 installkerneldebuglog = objdir('logs/dest-installkerneldebug')
 installworld = import_function('build-os', 'installworld')
 installkernel = import_function('build-os', 'installkernel')
+
+
+def assert_kernel_identity(kernel):
+    # the internal development record: never stage a kernel that names another os commit.
+    if env('SKIP_KERNEL_IDENTITY_GUARD'):
+        info('Skipping kernel identity check as instructed by setting SKIP_KERNEL_IDENTITY_GUARD')
+        return
+    expect = expected_ident(e('${OS_ROOT}'))
+    if expect is None:
+        info('Kernel identity check: no git identity for {0}, not checked', e('${OS_ROOT}'))
+        return
+    with open(kernel, 'rb') as f:
+        text = f.read().decode('latin-1')
+    if not ident_matches(text, expect):
+        error('{0} identifies as "{1}", expected {2}', kernel, baked_version(text), expect)
+    info('Kernel identity {0}: {1}', kernel, expect)
 
 
 if __name__ == '__main__':
@@ -58,3 +75,5 @@ if __name__ == '__main__':
         kodir="/boot/kernel-debug",
         conf="run"
     )
+    assert_kernel_identity(e('${WORLD_DESTDIR}/boot/kernel/kernel'))
+    assert_kernel_identity(e('${WORLD_DESTDIR}/boot/kernel-debug/kernel'))
