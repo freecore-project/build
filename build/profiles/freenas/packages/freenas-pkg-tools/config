@@ -1,11 +1,11 @@
 [Package]
 
 name = freenas-pkg-tools
-comment = "FreeNAS Package Tools"
-desc = "FreeNAS Package tools"
-www = http://www.freenas.org/
+comment = "FreeCORE Package Tools"
+desc = "FreeCORE Package tools"
+www = https://freecore.org/
 origin = freenas/pkg-tools
-maintainer = dev@ixsystems.com
+maintainer = dev@freecore.org
 prefix = /
 arch = freebsd:10:x86:64
 licenselogic = or
@@ -26,8 +26,12 @@ include = /usr/local/lib/freenasOS/Configuration.py
 	/usr/local/bin/manifest_util
 	/usr/local/bin/freenas-update
 	/usr/local/bin/freenas-verify
-	/usr/local/share/certs/freenas-update.pem
-	/usr/local/share/certs/iX-CA.pem
+	/usr/local/share/certs/FreeCORE-15.0-Nightlies.pem
+	/usr/local/share/certs/FreeCORE-15.0-STABLE.pem
+	/usr/local/share/certs/FreeCORE-15.1-STABLE.pem
+	/usr/local/share/certs/FreeCORE-Nightlies.pem
+	/usr/local/share/certs/FreeCORE-Production.pem
+	/usr/local/share/certs/freecore-update-ca.pem
 
 [Scripts]
 

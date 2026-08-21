@@ -54,7 +54,7 @@ def sh(*args, **kwargs):
         f = open(logfile, mode)
 
     debug('sh: {0}', cmd)
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE if logfile else None, stderr=subprocess.STDOUT, shell=True, close_fds=False)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE if logfile else None, stderr=subprocess.STDOUT, shell=True)
     if logfile:
         while True:
             read = proc.stdout.readline()
@@ -98,7 +98,7 @@ def sh_str(*args, **kwargs):
         f = open(logfile, mode)
 
     try:
-        return subprocess.check_output(cmd, shell=True, close_fds=False).decode('utf8').strip()
+        return subprocess.check_output(cmd, shell=True).decode('utf8').strip()
     except subprocess.CalledProcessError:
         return ''
 
