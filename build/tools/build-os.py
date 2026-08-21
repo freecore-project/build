@@ -133,7 +133,7 @@ def buildworld():
         "-j {0}".format(makejobs),
         "-C ${OS_ROOT}",
         "__MAKE_CONF={0}".format(makeconfbuild),
-        "NOCLEAN=YES",
+        "NO_CLEAN=YES",
         "buildworld",
         log=worldlog
     )

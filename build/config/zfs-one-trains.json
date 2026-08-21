@@ -1,0 +1,21 @@
+{
+  "trains": [
+    {
+      "name": "FreeCORE-15.0-Nightlies",
+      "description": "FreeCORE 15.0 nightly builds"
+    },
+    {
+      "name": "FreeCORE-15.0-STABLE",
+      "description": "FreeCORE 15.0 stable releases [release]"
+    },
+    {
+      "name": "FreeCORE-15.1-Nightlies",
+      "description": "FreeCORE 15.1 nightly builds"
+    },
+    {
+      "name": "FreeCORE-15.1-STABLE",
+      "description": "FreeCORE 15.1 stable releases [release]"
+    }
+  ],
+  "redirects": {}
+}
