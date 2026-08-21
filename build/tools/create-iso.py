@@ -87,6 +87,12 @@ files_to_preserve = [
     '/sbin/graid',
     '/sbin/resolvconf',
     '/sbin/swapoff',
+    # /sbin/init is kept as a real statically-linked binary (not a symlink to
+    # /rescue/init). FB15's crunchgen init works for itself but forks /bin/sh
+    # etc. which all resolve through /rescue symlinks — if /rescue hardlinks
+    # are lost (see clean_ufs_image below) every init-forked process fails.
+    # Keeping real init also avoids one layer of fragility at PID 1.
+    '/sbin/init',
     '/bin/install_worker.sh',
     '/bin/install_worker2.sh'
 ]
@@ -135,7 +141,6 @@ symlinks = {
     'fsck_ufs': '/sbin/fsck_ufs',
     'fsdb': '/sbin/fsdb',
     'fsirand': '/sbin/fsirand',
-    'gbde': '/sbin/gbde',
     'getfacl': '/bin/getfacl',
     'glabel': '/sbin/glabel',
     'gpart': '/sbin/gpart',
@@ -148,7 +153,6 @@ symlinks = {
     'hostname': '/bin/hostname',
     'id': '/usr/bin/id',
     'ifconfig': '/sbin/ifconfig',
-    'init': '/sbin/init',
     'kenv': '/bin/kenv',
     'kill': '/bin/kill',
     'kldconfig': '/sbin/kldconfig',
@@ -182,7 +186,6 @@ symlinks = {
     'newfs_msdos': '/sbin/newfs_msdos',
     'nextboot': '/sbin/nextboot',
     'nos-tun': '/sbin/nos-tun',
-    'pc-sysinstall': '/usr/sbin/pc-sysinstall',
     'pgrep': '/bin/pgrep',
     'ping': '/sbin/ping',
     'ping6': '/sbin/ping6',
@@ -205,7 +208,6 @@ symlinks = {
     'savecore': '/sbin/savecore',
     'setfacl': '/bin/setfacl',
     'sh': '/bin/sh',
-    'spppcontrol': '/sbin/spppcontrol',
     'stty': '/bin/stty',
     'swapon': '/sbin/swapon',
     'sync': '/bin/sync',
@@ -279,7 +281,16 @@ def install_ports():
     info('Installing packages')
     sh('mkdir -p ${INSTUFS_DESTDIR}/usr/local/etc/pkg/repos')
     sh('cp ${BUILD_CONFIG}/templates/pkg-repos/local.conf ${INSTUFS_DESTDIR}/usr/local/etc/pkg/repos/')
-    chroot('${INSTUFS_DESTDIR}', 'env ASSUME_ALWAYS_YES=yes pkg install -r local -f ${pkgs}')
+    # FB15 pkg(8) aborts with "Cannot open dev/null" if devfs isn't mounted;
+    # repo signature verification also reads /dev/fd/, so fdescfs is required.
+    sh('mount -t devfs devfs ${INSTUFS_DESTDIR}/dev')
+    sh('mount -t fdescfs fdescfs ${INSTUFS_DESTDIR}/dev/fd')
+    try:
+        # Use package scripts' existing batch path in disposable ISO staging.
+        chroot('${INSTUFS_DESTDIR}', 'env BATCH=yes ASSUME_ALWAYS_YES=yes pkg install -r local -f ${pkgs}')
+    finally:
+        sh('umount -f ${INSTUFS_DESTDIR}/dev/fd')
+        sh('umount -f ${INSTUFS_DESTDIR}/dev')
 
 
 def install_pkgtools():
@@ -308,6 +319,12 @@ def install_files():
     if e("${UNATTENDED_CONFIG}"):
         sh('cp ${UNATTENDED_CONFIG} ${INSTUFS_DESTDIR}/etc/install.conf')
     sh('cp ${BUILD_CONFIG}/templates/cdrom/rc.conf ${INSTUFS_DESTDIR}/etc/')
+    # FB15 removed /usr/bin/dialog from base. The cdialog port installs only
+    # /usr/local/bin/cdialog (no `dialog` alias). /etc/install.sh calls bare
+    # `dialog` with `2>` redirection, so ENOENT is swallowed and main()'s
+    # inner menu loop spins silently — installer appears to hang after the
+    # last rc.d/ldconfig message. Provide the 13.3-era `dialog` name.
+    sh('ln -s cdialog ${INSTUFS_DESTDIR}/usr/local/bin/dialog')
 
 
 def populate_ufsroot():
@@ -347,7 +364,18 @@ def clean_ufs_image():
     sh('${BUILD_ROOT}/build/customize/remove-bits.py ${INSTUFS_DESTDIR}')
 
     # Strip binaries
-    for root, dirs, files in os.walk(e('${INSTUFS_DESTDIR}/')):
+    instufs_root = e('${INSTUFS_DESTDIR}/')
+    for root, dirs, files in os.walk(instufs_root):
+        # /rescue/ is a crunchgen hardlink farm (one binary, ~150 hardlinked
+        # names). strip(1) uses temp-file + rename, which breaks hardlinks;
+        # re-stripping those already-stripped binaries would leave /rescue/
+        # with 150 independent copies and the first 149 symlinks (/bin/sh →
+        # /rescue/sh, etc.) pointing at de-linked files that disappeared.
+        # The hardlinks are produced by installworld and are already stripped
+        # upstream — skip the whole subtree.
+        if os.path.relpath(root, instufs_root) == 'rescue':
+            dirs[:] = []
+            continue
         for name in files:
             filename = os.path.join(root, name)
             if os.path.splitext(name)[1] == '.ko':
@@ -387,7 +415,11 @@ if __name__ == '__main__':
     info("Creating ISO image")
     cleandirs()
     installworld(e('${INSTUFS_DESTDIR}'), installworldlog, distributionlog, conf="boot")
-    installkernel(e('${KERNCONF}'), e('${ISO_DESTDIR}'), installkernellog, modules="", conf="boot")
+    # modules=None → installkernel picks up the full config['kernel_modules']
+    # list, including zfs + opensolaris. FB15 lost its built-in-kernel ZFS path
+    # compared to 13.x; the installer needs zfs.ko on disk + zfs_load="YES" in
+    # loader.conf (below) so `zpool create` works during install.sh.
+    installkernel(e('${KERNCONF}'), e('${ISO_DESTDIR}'), installkernellog, modules=None, conf="boot")
     create_ufs_dirs()
     mount_packages()
     install_ports()
