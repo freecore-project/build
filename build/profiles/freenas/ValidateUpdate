@@ -1,2 +1,5 @@
 #!/bin/sh
+
+# Existing GRUB VM records may remain configured when upgrading to 15.1.
+# The VM runtime reports their unsupported boot mode when they are started.
 exit 0

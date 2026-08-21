@@ -1,11 +1,11 @@
 [Package]
 
 name = base-os
-comment = "FreeNAS OS"
-desc = "FreeNAS OS (derived from FreeBSD)"
-www = http://www.freenas.org/
+comment = "FreeCORE OS"
+desc = "FreeCORE OS (derived from FreeBSD)"
+www = https://freecore.org/
 origin = freenas/os
-maintainer = dev@ixsystems.com
+maintainer = dev@freecore.org
 prefix = /
 arch = freebsd:10:x86:64
 licenselogic = or
@@ -28,6 +28,7 @@ post-install =
 	/usr/bin/touch /boot/modules/linker.hints
 	/usr/bin/touch /data/.hba_firmware_update
 	/usr/bin/touch /data/.ses_firmware_update
+	/usr/bin/touch /data/.crashreporting_disabled
 
 	if ! dmidecode -s system-product-name | egrep "^(FREE|TRUE)NAS" > /dev/null; then
 		for i in `seq 0 3`; do
@@ -40,6 +41,36 @@ post-install =
 	fi
 
 post-upgrade =
+    # BEGIN FreeCORE rollback-arrival helper
+    record_rollback_arrival()
+    {
+        local marker recorded_at temporary
+
+        marker="$1"
+        if ! recorded_at=$(/usr/bin/stat -f '%%m' "$0"); then
+            return 1
+        fi
+        case "$recorded_at" in
+            ''|*[!0-9]*)
+                return 1
+                ;;
+        esac
+        if [ "$recorded_at" -le 0 ]; then
+            return 1
+        fi
+        if ! temporary=$(/usr/bin/mktemp "${marker}.XXXXXX"); then
+            return 1
+        fi
+        if ! /bin/chmod 600 "$temporary" ||
+            ! printf '%%s %%s\n' unknown "$recorded_at" > "$temporary" ||
+            ! /bin/mv -f "$temporary" "$marker";
+        then
+            /bin/rm -f "$temporary"
+            return 1
+        fi
+    }
+    # END FreeCORE rollback-arrival helper
+
     has_alembic=$(echo "SELECT name FROM sqlite_master WHERE name = 'alembic_version'" | sqlite3 /data/freenas-v1.db)
     if [ "$has_alembic" = "" ];
     then
@@ -72,7 +103,7 @@ post-upgrade =
 		   gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 /dev/${disk}
 	       elif sysctl -n machdep.bootmethod | fgrep -q "EFI" && gpart show ${disk} | grep -q efi; then
 		   if mount -t msdosfs /dev/${disk}p1 /boot/efi; then
-		       cp /boot/boot1.efi /boot/efi/efi/boot/BOOTx64.efi
+		       cp /boot/loader.efi /boot/efi/efi/boot/BOOTx64.efi
 		       umount -f /boot/efi
 		   fi
 	       fi
@@ -103,6 +134,14 @@ post-upgrade =
     if [ ! -f "/data/update.failed" ]; then
         /usr/local/bin/sqlite3 /data/freenas-v1.db "REPLACE INTO system_keyvalue (key, value) VALUES ('run_migration', 'true')" > "/data/update.failed" 2>&1 && rm -f /data/update.failed
     fi
+    # BEGIN FreeCORE rollback-arrival producer
+    if [ ! -f "/data/update.failed" ]; then
+        if ! record_rollback_arrival "/data/system-rollback.arrival"; then
+            echo "Unable to persist the automatic rollback arrival marker" >&2
+            exit 1
+        fi
+    fi
+    # END FreeCORE rollback-arrival producer
     rm -f /data/sentinels/unscheduled-reboot
 
     if ! dmidecode -s system-product-name | egrep "^(FREE|TRUE)NAS" > /dev/null; then
