@@ -41,7 +41,7 @@ def run(ssh):
 
     try:
         job = json.loads(data)
-    except ValueError, e:
+    except ValueError as e:
         return failure('"launchctl dump" returned unreadable json: {0}'.format(data))
 
     if job["Label"] != "org.freebsd.getty.ttyu0":
