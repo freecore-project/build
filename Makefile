@@ -112,7 +112,6 @@ buildenv:
 	@${BUILD_TOOLS}/buildenv.py sh
 
 bootstrap-pkgs:
-	pkg install -y archivers/pxz
 	pkg install -y lang/python3
 	pkg install -y lang/python
 	pkg install -y ports-mgmt/poudriere-devel
