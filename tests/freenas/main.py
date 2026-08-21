@@ -32,7 +32,6 @@ import shutil
 import subprocess
 from utils import e, sh, objdir, info
 from xml.etree.ElementTree import Element, SubElement, tostring, parse
-from distutils.core import run_setup
 from xml.dom import minidom
 
 

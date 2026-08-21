@@ -29,8 +29,12 @@ import ipaddress
 import subprocess
 import threading
 import time
-from dhcp.server import Server
-from dhcp.lease import Lease
+try:
+    from dhcp.server import Server
+    from dhcp.lease import Lease
+except ImportError:
+    Server = None
+    Lease = None
 from dsl import load_file, load_profile_config
 from utils import sh, sh_str, sh_spawn, info, objdir, e
 
@@ -74,6 +78,9 @@ def cleanup_network():
 
 def setup_dhcp_server():
     global dhcp_server
+
+    if Server is None or Lease is None:
+        raise RuntimeError('py-dhcp is not installed; install it or remove DHCP-based test setup')
 
     def dhcp_request(mac, hostname):
         info('DHCP request from {0} ({1})'.format(hostname, mac))
