@@ -61,6 +61,13 @@ def main():
         info('SDK: Skipping remove-gcc...')
         return 0
 
+    # GCC 4.8 is not present on FreeBSD 15 (LLVM/clang is the system compiler).
+    # Skip if the gcc48 lib directory does not exist.
+    import os
+    if not os.path.isdir(e('${WORLD_DESTDIR}/usr/local/lib/gcc48')):
+        info('No GCC 4.8 found, skipping remove-gcc (expected on FB15+)')
+        return 0
+
     for i in files_to_save:
         sh('mv ${WORLD_DESTDIR}/${i} ${WORLD_DESTDIR}/${i}.bak')
 

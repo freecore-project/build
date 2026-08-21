@@ -50,8 +50,10 @@ def main(destdir):
     sh('rm -rf ${destdir}/var/tmp/rc.conf.frenas')
     sh('rm -rf ${destdir}/var/tmp/freenas_config.md5')
 
-    # magic.mgc is just a speed optimization
-    sh('rm -f ${destdir}/usr/share/misc/magic.mgc')
+    # /usr/share/misc/magic.mgc stays (the internal development record).  The FreeNAS 10 build
+    # deleted it as "just a speed optimization"; with file 5.46 the compiled
+    # database is also the only quiet load path -- parsing the text database
+    # warns about upstream's duplicate entries on every file(1) call.
 
     # If we are doing SDK build, we can stop here
     if e('${SDK}') == "yes":
@@ -69,7 +71,7 @@ def main(destdir):
     sh("find ${destdir}/usr/local \( -name '*.pyo' \) -delete")
 
     # We don't need python test in the image
-    sh('rm -rf ${destdir}/usr/local/lib/python3.7/test')
+    sh("find ${destdir}/usr/local/lib -maxdepth 1 -name 'python3.*' -exec rm -rf {}/test \\;")
 
     # Kill includes
     sh("find ${destdir}/usr/local/include \( \! -name 'pyconfig.h' \) -type f -delete")

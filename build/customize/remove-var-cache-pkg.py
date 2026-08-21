@@ -27,13 +27,20 @@
 #####################################################################
 
 import os
-from utils import chroot,e
+from utils import chroot, e, sh
 
 
 def main():
     if not os.path.exists(e('${WORLD_DESTDIR}/var/cache/pkg')):
         os.makedirs(e('${WORLD_DESTDIR}/var/cache/pkg'))
-    chroot('${WORLD_DESTDIR}', 'pkg clean -a -y')
+    # FB15 pkg(8) aborts with "Cannot open dev/null" if devfs isn't mounted.
+    # install-ports.py unmounts devfs after its pkg-install step, so remount
+    # just for pkg clean here. fdescfs isn't needed — only pkg install uses it.
+    sh('mount -t devfs devfs ${WORLD_DESTDIR}/dev')
+    try:
+        chroot('${WORLD_DESTDIR}', 'pkg clean -a -y')
+    finally:
+        sh('umount -f ${WORLD_DESTDIR}/dev')
 
 
 if __name__ == '__main__':
