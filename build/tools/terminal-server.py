@@ -44,11 +44,11 @@ class Main(object):
         self.clients.append(sock)
 
         # Disable local echo
-        sock.send('\xff\xfb\x01')
+        sock.send(b'\xff\xfb\x01')
         sock.recv(3)
 
         # Suppress go-ahead
-        sock.send('\xff\xfb\x03')
+        sock.send(b'\xff\xfb\x03')
         sock.recv(3)
 
         while True:
@@ -71,7 +71,7 @@ class Main(object):
 
             if self.logfile:
                 self.logfile.write(ch)
-                if ch == '\n':
+                if ch == b'\n':
                     self.logfile.flush()
 
             for i in self.clients:
@@ -102,7 +102,7 @@ class Main(object):
         args = parser.parse_args()
 
         if args.l:
-            self.logfile = open(args.l, 'a+')
+            self.logfile = open(args.l, 'ab')
 
         try:
             self.console = serial.Serial(args.c, 9600)
