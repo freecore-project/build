@@ -84,7 +84,9 @@ def install_ports():
     pkgs = ' '.join(get_port_names(config.ports))
     sh('mount -t devfs devfs ${WORLD_DESTDIR}/dev')
     sh('mount -t fdescfs fdescfs ${WORLD_DESTDIR}/dev/fd')
-    err = chroot('${WORLD_DESTDIR}', 'env ASSUME_ALWAYS_YES=yes pkg install -r local -f ${pkgs}', log=logfile, logtimestamp=True, nofail=True)
+    # Package scripts must use their existing noninteractive image-build path.
+    # In particular, Cyrus SASL skips generating a temporary-account database.
+    err = chroot('${WORLD_DESTDIR}', 'env BATCH=yes ASSUME_ALWAYS_YES=yes pkg install -r local -f ${pkgs}', log=logfile, logtimestamp=True, nofail=True)
     sh('umount -f ${WORLD_DESTDIR}/dev/fd')
     sh('umount -f ${WORLD_DESTDIR}/dev')
 
@@ -104,7 +106,7 @@ def install_binary_packages():
     for i in config.binary_packages:
         _, name = os.path.split(i)
         path = e('/usr/ports/packages/${name}')
-        chroot('${WORLD_DESTDIR}', 'env ASSUME_ALWAYS_YES=yes pkg -o DEBUG_LEVEL=3 install -f ${path}', log=logfile)
+        chroot('${WORLD_DESTDIR}', 'env BATCH=yes ASSUME_ALWAYS_YES=yes pkg -o DEBUG_LEVEL=3 install -f ${path}', log=logfile)
 
 
 if __name__ == '__main__':
