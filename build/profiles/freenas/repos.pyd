@@ -23,59 +23,113 @@
 # SUCH DAMAGE.
 #
 
+# Source components for a FreeCORE build.
+#
+# Every branch below is a real cloneable ref, and every component also carries
+# an immutable commit pin. FreeBSD and Samba are materialized automatically
+# from checksum-pinned release deltas after checkout. Ports is the complete
+# history-free release source because its imported base is not public.
+
+# FreeBSD 15 base. Apply the FreeCORE release delta from the freebsd-src
+# publication repository on top.
 repos += {
     "name": "os",
     "path": "os",
-    "url": "https://github.com/freenas/os.git",
-    "branch": "truenas/13-stable"
+    "url": "https://github.com/freebsd/freebsd-src.git",
+    "branch": "releng/15.1",
+    "commit": "0f691888dc56a068f74c213bc87b32939b6b354e"
 }
 
+# FreeCORE middleware.
 repos += {
     "name": "freenas",
     "path": "freenas",
-    "url": "http://github.com/freenas/freenas.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/middleware.git",
+    "branch": "main",
+    "commit": "c026c41f92e07c3b2d06e294db6c40d1a8d4f3d0"
 }
 
-
+# FreeCORE web UI.
 repos += {
     "name": "webui",
     "path": "webui",
-    "url": "http://github.com/freenas/webui.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/webui.git",
+    "branch": "main",
+    "commit": "507bd4fe0885a974297db4a350a87f2aca8891c0"
 }
 
+# Complete history-free ports release source.
 repos += {
     "name": "ports",
     "path": "ports",
-    "url": "https://github.com/freenas/ports.git",
-    "branch": "truenas/13.0-stable"
-}
-
-repos += {
-    "name" :"py-licenselib",
-    "path": "py-licenselib",
-    "url": "https://github.com/freenas/licenselib.git",
-    "branch": "truenas/13.0-stable"
-}
-
-repos += {
-    "name": "freenas-pkgtools",
-    "path": "freenas-pkgtools",
-    "url": "https://github.com/freenas/freenas-pkgtools.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/ports.git",
+    "branch": "source/15.0-RELEASE",
+    "commit": "3adf3a4f9699bc4e016e989c92865a7b13738bb3"
 }
 
 repos += {
     "name": "py-bsd",
     "path": "py-bsd",
-    "url": "https://github.com/freenas/py-bsd.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/py-bsd.git",
+    "branch": "main",
+    "commit": "a5f4a738fb26035a9602bcce29ebed324b8574c6"
+}
+
+repos += {
+    "name": "py-cam",
+    "path": "py-cam",
+    "url": "https://codeberg.org/freecore/py-cam.git",
+    "branch": "main",
+    "commit": "ea95f60b2d6b67a2847fb8719f361f14be85777f"
+}
+
+repos += {
+    "name": "py-netif",
+    "path": "py-netif",
+    "url": "https://codeberg.org/freecore/py-netif.git",
+    "branch": "main",
+    "commit": "3784b2bb7779c40be1238dd2fcd8116bbff779d7"
+}
+
+repos += {
+    "name": "py-libzfs",
+    "path": "py-libzfs",
+    "url": "https://codeberg.org/freecore/py-libzfs.git",
+    "branch": "main",
+    "commit": "5545986d01b093e6ca3bca94b7d230f7d3be6ca9"
+}
+
+# Pinned to the exact commit the FreeCORE samba release delta applies to.
+repos += {
+    "name": "samba",
+    "path": "samba",
+    "url": "https://github.com/truenas/samba.git",
+    "branch": "truenas/v4-24-stable",
+    "commit": "e7df0a31a95db824642546bb32ad73b25fcc660a"
+}
+
+# Not forked by FreeCORE -- used unmodified, pinned to the exact commit.
+# Upstream renamed this repository from py-licenselib to licenselib.
+repos += {
+    "name": "py-licenselib",
+    "path": "py-licenselib",
+    "url": "https://github.com/truenas/licenselib.git",
+    "branch": "truenas/13.3-stable",
+    "commit": "4a264d3d9210d6b46e3ac97b31357024c6c124f6"
+}
+
+repos += {
+    "name": "freenas-pkgtools",
+    "path": "freenas-pkgtools",
+    "url": "https://codeberg.org/freecore/freenas-pkgtools.git",
+    "branch": "main",
+    "commit": "c897c4be141d7771ff53826ef57d63a7732c6453"
 }
 
 repos += {
     "name": "iocage",
     "path": "iocage",
-    "url": "https://github.com/freenas/iocage.git",
-    "branch": "truenas/13.0-stable"
+    "url": "https://codeberg.org/freecore/iocage.git",
+    "branch": "main",
+    "commit": "b95d8bb863452d485fab26871c6436ee03e7e2ca"
 }

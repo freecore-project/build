@@ -28,77 +28,152 @@ include("ports.pyd")
 include("packages.pyd")
 
 profile = {
-    "name": "truenas13",
-    "description": "TrueNAS 13",
-    "owner": "dev@ixsystems.com",
+    "name": "truenas15",
+    "description": "TrueNAS 15",
+    "owner": "dev@freecore.org",
     "status": "active"
 }
 
 kernel_config = "${PROFILE_ROOT}/kernel/TRUENAS.amd64"
 
 kernel_modules = [
+    # Filesystems
     "autofs",
-    "bnxt",
-    "cc",
-    "cfiscsi",
-    "ctl",
-    "dtrace",
-    "efirt",
-    "evdev",
     "ext2fs",
-    "firewire",
-    "geom",
-    "hid",
-    "i2c",
-    "ipmi",
-    "ipsec",
-    "iscsi",
-    "khelp/h_ertt",
-    "libiconv",
-    "libmchain",
-    "linprocfs",
-    "linsysfs",
-    "linux",
-    "linux64",
-    "linux_common",
-    "mac_ntpd",
-    "msdosfs_iconv",
-    "ispfw/ispfw",
+    "fusefs",
     "opensolaris",
-    "pf",
-    "pflog",
+    "zfs",
     "smbfs",
     "udf",
-    "usb",
-    "fusefs",
-    "vmm",
-    "netmap",
-    "nmdm",
-    "ntb",
-    "nvdimm",
+    "msdosfs_iconv",
+    "libiconv",
+
+    # Storage controllers & NVMe
+    "ctl",
+    "cfiscsi",
+    "iscsi",
+    "iser",
+    "nvme",
+    "nvmf",
     "ioat",
+    "hpt27xx",
+    "hptmv",
+    "hptnr",
+    "hptrr",
+    "ispfw/ispfw",
+
+    # Networking - core
+    "pf",
+    "pflog",
+    "dummynet",
+    "netmap",
     "toecore",
+    "libmchain",
+    "if_wg",
+
+    # Networking - drivers
+    # Keep current in-tree server and cloud NICs available as modules; selecting
+    # them here ships the drivers but does not force-load them on every host.
+    "bnxt",
     "cxgb",
     "cxgbe",
-    "dummynet",
-    "hwpmc",
+    "ena",
+    "enic",
+    "fxp",
+    "gve",
+    "ice",
+    "ice_ddp",
+    "igc",
+    "mana",
+    "mlx5",
+    "mlx5en",
+    "qlnx",
+    "qlxgbe",
+    "sis",
+
+    # InfiniBand / RDMA
     "ibcore",
     "ipoib",
     "mlx4ib",
     "mlx5ib",
     "mthca",
-    "qlnx",
-    "qlxgbe",
+    "rdma",
+    "irdma",
+
+    # Crypto
     "qat",
     "qatfw",
-    "iser",
-    "fxp",
-    "ice_ddp",
-    "sis",
-    "hpt27xx",
-    "hptmv",
-    "hptnr",
-    "hptrr",
+
+    # Linuxulator
+    "linprocfs",
+    "linsysfs",
+    "linux",
+    "linux64",
+    "linux_common",
+
+    # LinuxKPI -- the compatibility layer graphics/drm-66-kmod links against.
+    # Distinct from the Linuxulator group above, which is Linux *binary* compat:
+    # shipping those does not provide linuxkpi_video, so drm.ko failed to load
+    # with "depends on linuxkpi_video - not available" even though the package
+    # installed correctly. the internal development record.
+    #
+    # linuxkpi_hdmi and linuxkpi_wlan are not referenced by any of the four
+    # modules and stay out of the image.
+    "linuxkpi",
+    "linuxkpi_video",
+
+    # lindebugfs and agp complete drm-66-kmod's dependency closure. The first
+    # round of this fix added only linuxkpi/linuxkpi_video because kldxref
+    # output was filtered through `grep linuxkpi` and the filtered result was
+    # then treated as the whole list -- the image built, and drm.ko still would
+    # not load, this time on "depends on lindebugfs". Do not read a dependency
+    # list through a grep for the answer you expect.
+    #
+    # The closure is now computed from source rather than discovered per build:
+    # lindebugfs declares MODULE_DEPEND(lindebugfs, linuxkpi) and nothing else;
+    # agp declares MODULE_VERSION with no MODULE_DEPEND at all. Everything else
+    # the four modules name is either in the kernel (kernel, pci, mem, firmware),
+    # already shipped (dmabuf, ttm, iic, iicbb, iicbus), or provided by drm.ko
+    # itself (drmn).
+    #
+    # agp is needed only by i915kms. It is included so the port does not ship a
+    # module that cannot load -- the same half-state this issue exists to fix --
+    # even though the driving use case is AMD.
+    "lindebugfs",
+    "agp",
+
+    # Input / HID / evdev
+    "evdev",
+    "hid",
+
+    # Hardware monitoring / mgmt
+    "i2c",
+    "ipmi",
+    "efirt",
+    "hwpmc",
+
+    # Virtualization
+    "vmm",
+    "nmdm",
+
+    # DTrace / debugging
+    "dtrace",
+
+    # TCP congestion control
+    "cc",
+    "khelp/h_ertt",
+
+    # Security
+    "ipsec",
+    "mac_ntpd",
+
+    # Misc
+    "geom",
+    "ntb",
+    "nvdimm",
+    "usb",
+    "smartpqi",
+    "mpi3mr",
 ]
 
 # World/kernel build configuration
@@ -107,39 +182,26 @@ make_conf_extra = [
 ]
 
 make_conf_build = {
-    "WITHOUT_ATM":                  "yes",
     "WITHOUT_BLUETOOTH":            "yes",
     "WITHOUT_BSDINSTALL":           "yes",
     "WITHOUT_BSNMP":                "yes",
     "WITHOUT_CALENDAR":             "yes",
-    "WITHOUT_CTM":                  "yes",
     "WITHOUT_CUSE":                 "yes",
     "WITHOUT_DICT":                 "yes",
-    "WITHOUT_FORTRAN":              "yes",
     "WITHOUT_FREEBSD_UPDATE":       "yes",
     "WITHOUT_GAMES":                "yes",
     "WITHOUT_GCOV":                 "yes",
-    "WITHOUT_GPIB":                 "yes",
     "WITHOUT_HTML":                 "yes",
     "WITHOUT_IPFILTER":             "yes",
-    "WITHOUT_IPX":                  "yes",
     "WITHOUT_LIB32":                "yes",
-    "WITHOUT_LIBKSE":               "yes",
     "WITHOUT_LPR":                  "yes",
-    "WITHOUT_NDIS":                 "yes",
     "WITHOUT_NLS":                  "yes",
-    "WITHOUT_OBJC":                 "yes",
-    "WITH_OPENSSH_NONE_CIPHER":     "yes",
-    "WITHOUT_PC_SYSINSTALL":        "yes",
     "WITHOUT_PPP":                  "yes",
-    "WITHOUT_RCMDS":                "yes",
     "WITHOUT_SENDMAIL":             "yes",
-    "WITHOUT_SVNLITE":              "yes",
+    "WITHOUT_SOUND":                "yes",
     "WITHOUT_SYSCONS":              "yes",
-    "WITHOUT_SYSINSTALL":           "yes",
     "WITHOUT_WIRELESS":             "yes",
     "WITHOUT_WPA_SUPPLICANT_EAPOL": "yes",
-    "WITHOUT_ZFS":                  "yes",
     "LOCAL_DIRS":                   "share/examples/ses tools/tools/cxgbtool tools/tools/cxgbetool"
 }
 
@@ -150,8 +212,8 @@ make_conf_jail = {
 
 # Packages configuration
 make_conf_pkg = {
-    "DEFAULT_VERSIONS":             "python=3.9 python3=3.9 ssl=base",
-    "WITH_SAMBA4_PYTHON3":          "python3.9",
+    "DEFAULT_VERSIONS":             "python=3.11 python3=3.11 ssl=base",
+    "WITH_SAMBA4_PYTHON3":          "python3.11",
     "OPTIONS_UNSET":                "DOCS X11 JAVA",
     "WANT_OPENLDAP_SASL":           "yes",
     "USE_PACKAGE_DEPENDS":          "yes",
@@ -167,7 +229,6 @@ make_conf_pkg = {
 
 # Configuration for installed NAS
 make_conf_run = {
-    "WITHOUT_RCS":                  "yes",
 }
 
 # Configuration for installer
@@ -177,7 +238,6 @@ make_conf_boot = {
     "WITHOUT_DEBUG_FILES":          "yes",
     "WITHOUT_DICT":                 "yes",
     "WITHOUT_EXAMPLES":             "yes",
-    "WITHOUT_GROFF":                "yes",
     "WITHOUT_ICONV":                "yes",
     "WITHOUT_INETD":                "yes",
     "WITHOUT_JAIL":                 "yes",
@@ -189,8 +249,12 @@ make_conf_boot = {
     "WITHOUT_NIS":                  "yes",
     "WITHOUT_NLS":                  "yes",
     "WITHOUT_PMC":                  "yes",
-    "WITHOUT_VT":                   "yes",
-    "WITHOUT_ZFS":                  "yes",
+    # WITHOUT_ZFS removed for FB15: on 13.x the installer got zpool/zfs from
+    # the `sysutils/openzfs` port (installed via ports-installer.pyd). That
+    # port was dropped for FB15 because OpenZFS 2.4 ships in-base. Leaving
+    # WITHOUT_ZFS=yes AND removing the port leaves the installer with no
+    # zpool/zfs anywhere — /etc/install.sh fails at the first `zpool create`
+    # with "zpool: not found".
 }
 
 early_customize_tasks = [
