@@ -91,6 +91,11 @@ def create_make_conf():
             conf.write('{0}{1}\n'.format(k, v))
         else:
             conf.write('{0}={1}\n'.format(k, v))
+    # Append per-port conditional stanzas (bmake .if ${.CURDIR:M*/port}).
+    tmpl = e('${BUILD_CONFIG}/templates/make.conf')
+    if os.path.exists(tmpl):
+        with open(tmpl) as f:
+            conf.write(f.read())
     conf.close()
 
 
@@ -99,7 +104,7 @@ def create_ports_list():
     sh('rm -rf', portoptions)
 
     f = open(portslist, 'w')
-    for port in installer_ports['ports'] + config['ports']:
+    for port in installer_ports['ports'] + config['ports'] + config.get('package_ports', []):
         name = port['name'] if isinstance(port, dict) else port
         name_und = name.replace('/', '_')
         options_path = pathjoin(portoptions, name_und)
@@ -144,7 +149,34 @@ def prepare_jail():
     setfile(e('${basepath}/version'), e('${FREEBSD_RELEASE_VERSION}'))
     setfile(e('${basepath}/arch'), e('${BUILD_ARCH}'))
 
-    sh("jail -U root -c name=${jailname} path=${JAIL_DESTDIR} command=/sbin/ldconfig -m /lib /usr/lib /usr/lib/compat")
+    # /usr/lib/compat removed in FreeBSD 14+
+    sh("jail -U root -c name=${jailname} path=${JAIL_DESTDIR} command=/sbin/ldconfig -m /lib /usr/lib")
+
+
+def restore_openzfs_headers():
+    info('Restoring OpenZFS headers into package jail')
+    dest = e('${JAIL_DESTDIR}/usr/include')
+    sh('mkdir -p', dest)
+
+    for source in (
+        e('${OS_ROOT}/sys/contrib/openzfs/include'),
+        e('${OS_ROOT}/sys/contrib/openzfs/lib/libspl/include'),
+        e('${OS_ROOT}/sys/contrib/openzfs/lib/libspl/include/os/freebsd'),
+    ):
+        if os.path.isdir(source):
+            sh('rsync -a --ignore-existing --exclude=sys/vfs.h --exclude=sys/mnttab.h',
+               source + '/', dest + '/')
+
+    # libspl shims only compile inside libspl's include sandwich (its sys/types.h
+    # defines uint_t etc.); exposed globally they kill any port that probes them:
+    # sys/vfs.h is an unresolvable include_next (the internal development record), sys/mnttab.h
+    # doesn't compile standalone and flips mount-backend detection (the internal development record).
+    # The rm also heals jails populated before the excludes existed.
+    for shim in ('sys/vfs.h', 'sys/mnttab.h'):
+        sh('rm -f', pathjoin(dest, shim))
+
+    if os.path.exists(pathjoin(dest, 'libzfs.h')) and not os.path.exists(pathjoin(dest, 'libshare.h')):
+        error('OpenZFS header restore failed: libshare.h missing from ${JAIL_DESTDIR}/usr/include')
 
 
 def merge_port_trees():
@@ -267,6 +299,7 @@ if __name__ == '__main__':
     create_make_conf()
     create_ports_list()
     prepare_jail()
+    restore_openzfs_headers()
     merge_port_trees()
     keep_wrkdirs()
     prepare_env()
