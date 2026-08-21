@@ -49,13 +49,6 @@ def main():
     sh('rm -rf ${WORLD_DESTDIR}/tmp')
     sh('ln -s /var/tmp ${WORLD_DESTDIR}/tmp')
 
-    # Make sure .rnd points to tmpfs.
-    # Some daemons starting at boot time will try to write that file
-    # because of $HOME/.rnd is the default path and HOME=/ defined in /etc/rc
-    # See #23304
-    sh('ln -s /var/tmp/.rnd ${WORLD_DESTDIR}/.rnd')
-    sh('touch ${WORLD_DESTDIR}/conf/base/var/tmp/.rnd')
-
     sh('ln -s -f /usr/local/bin/ntfs-3g ${WORLD_DESTDIR}/sbin/mount_ntfs')
 
 
