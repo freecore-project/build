@@ -28,7 +28,7 @@
 
 import os
 import subprocess
-import imp
+import importlib.util
 import threading
 import time
 from utils import sh, sh_str, sh_spawn, e, glob, objdir, info, debug, error, load_file, import_function, on_abort, appendfile
@@ -89,7 +89,6 @@ def setup_vm():
     global vm_proc, termserv_proc
 
     info('Starting up VM')
-    sh('bhyveload -m ${RAM_SIZE} -d ${OBJDIR}/test-root.ufs ${VM_NAME}')
     vm_proc = sh_spawn(
         'bhyve -m ${RAM_SIZE} -A -H -P',
         '-s 0:0,hostbridge',
@@ -97,6 +96,7 @@ def setup_vm():
         '-s 2:0,ahci-hd,${OBJDIR}/test-root.ufs',
         '-s 3:0,ahci-hd,${OBJDIR}/test-swap.bin',
         '-s 31,lpc -l com1,${CONSOLE_MASTER}',
+        '-l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI.fd',
         '${VM_NAME}'
     )
 
@@ -165,7 +165,9 @@ def main():
         testname = os.path.splitext(os.path.basename(t))[0]
         logfile = objdir('logs/test-${testname}.log')
         info('Running test {0} (logfile {1})', testname, logfile)
-        mod = imp.load_source(testname, t)
+        spec = importlib.util.spec_from_file_location(testname, t)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
         success, reason = mod.run(lambda x: ssh(x, logfile))
 
         # Give VM a while if panic happened

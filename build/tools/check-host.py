@@ -27,6 +27,7 @@
 #####################################################################
 
 import os
+import subprocess
 from utils import e, info, debug, error, sh_str
 
 
@@ -50,8 +51,10 @@ def check_port(name, port):
 
 def check_port_version(name, port, version):
     debug('Checking for version {0} of {1}', version, name)
-    install_ver = os.popen("""pkg info -q | awk -F- '/%s/ {print $2}'"""
-                           """| awk -F. '/%s/ {print $2}'""" % (name, version)).read().strip()
+    install_ver = subprocess.run(
+        ['sh', '-c', """pkg info -q | awk -F- '/%s/ {print $2}' | awk -F. '/%s/ {print $2}'""" % (name, version)],
+        capture_output=True, text=True
+    ).stdout.strip()
     if version != install_ver:
         error('Wrong version of {0} installed:', port)
 
@@ -66,7 +69,7 @@ def check_port_byfile(name, port, fname):
 
 def check_build_tools():
     check_port('git', 'devel/git')
-    check_port('pxz', 'archivers/pxz')
+    check_port('xz', 'xz (in base)')
     check_port('python3', 'lang/python3')
     check_port('poudriere', 'ports-mgmt/poudriere-devel')
     check_port('gmake', 'devel/gmake')
