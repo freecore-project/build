@@ -61,7 +61,7 @@ $MAKEFS -t cd9660 \
     -o bootimage="i386;efiboot.img" -o no-emul-boot -o platformid="efi" \
     -o rockridge \
     -o label="$LABEL" \
-    -o publisher="iXsystems Inc.  https://www.ixsystems.com/" \
+    -o publisher="FreeCORE  https://freecore.org/" \
     "$NAME" "$ROOTDIR"
 rm -f efiboot.img
 

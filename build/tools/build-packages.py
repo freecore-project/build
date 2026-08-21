@@ -30,6 +30,8 @@ import os
 import time
 import hashlib
 from dsl import load_profile_config
+from package_input import require_clean_package_input
+from repo_manifest import render_shipped_manifest
 from utils import sh, e, objdir, info, env
 
 
@@ -45,16 +47,27 @@ def read_repo_manifest():
     global pkgversion
     global sequence
 
-    versions = []
-    f = open(e("${BE_ROOT}/repo-manifest"))
-    o = open(e("${BE_ROOT}/objs/world/etc/repo-manifest"), "w")
-
-    for i in f:
-        versions.append(i.split()[1])
-        o.write(i)
+    with open(e("${BE_ROOT}/repo-manifest"), encoding='utf-8') as source:
+        shipped, versions = render_shipped_manifest(source.read())
+    # Keep checkout URLs in private build evidence only. Validate the whole
+    # inventory before writing the copy that enters packages and the ISO.
+    # /etc is a tmpfs seeded from /conf/base/etc at every boot, and conf-base
+    # copied etc into the seed before packaging ran, so a copy under etc alone
+    # is hidden on the booted appliance: seed the boot copy as well (the same
+    # bytes, exactly like etc/version).
+    for path in ("${WORLD_DESTDIR}/etc/repo-manifest",
+                 "${WORLD_DESTDIR}/conf/base/etc/repo-manifest"):
+        os.makedirs(os.path.dirname(e(path)), exist_ok=True)
+        with open(e(path), "w", encoding='utf-8') as output:
+            output.write(shipped)
 
     pkgversion = hashlib.md5('-'.join(versions).encode('ascii')).hexdigest()
-    sequence = pkgversion
+    # The publisher's Sequences table is globally unique, so the same source
+    # heads promoted onto a second train (Nightlies build re-cut as RELEASE
+    # on STABLE) must not reuse the bare source hash as their sequence.
+    sequence = hashlib.md5(
+        '-'.join(versions + [e('${TRAIN}') or 'FreeNAS', e('${VERSION}') or '']).encode('ascii')
+    ).hexdigest()
 
 
 def build_pkgtools():
@@ -93,6 +106,7 @@ def copy_validators():
             validators.append(e('-V ${pkgdir}/Packages/' + p))
 
 def build_packages():
+    require_clean_package_input(e('${WORLD_DESTDIR}'))
     retval = []
     info('Building packages')
     sh('rm -rf ${pkgdir}/Packages')

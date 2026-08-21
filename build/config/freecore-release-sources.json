@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "release": "15.0-U1.7",
+  "sources": [
+    {
+      "name": "os",
+      "path": "os",
+      "url": "https://github.com/freebsd/freebsd-src.git",
+      "branch": "releng/15.1",
+      "commit": "0f691888dc56a068f74c213bc87b32939b6b354e",
+      "tree": "72549a89f658e5aca66b55dd7fd00836e2312ac7",
+      "delta_url": "https://codeberg.org/freecore/freebsd-src/raw/tag/v15.0-U1.7/0001-freecore-freebsd-src-release-delta.patch",
+      "delta_filename": "0001-freecore-freebsd-src-release-delta.patch",
+      "delta_sha256": "009f5966f79d86c387b0e856fa33c0c682165c83f869b47bc3a586c6d6fa0150",
+      "materialized_commit_date": "2026-08-21T12:00:00+02:00"
+    },
+    {
+      "name": "freenas",
+      "path": "freenas",
+      "url": "https://codeberg.org/freecore/middleware.git",
+      "branch": "main",
+      "commit": "399adbb613e1dfd50da686237d22f8a81270454b",
+      "tree": "89773a06d98c78e40ada9ca848596390e150b786"
+    },
+    {
+      "name": "webui",
+      "path": "webui",
+      "url": "https://codeberg.org/freecore/webui.git",
+      "branch": "main",
+      "commit": "86a765ff218f8d707e688c1ce171e6d2cdabb8e9",
+      "tree": "3dab7cd6fcf3c2a2fe77c547a4c3aa6cf4dbd070"
+    },
+    {
+      "name": "ports",
+      "path": "ports",
+      "url": "https://codeberg.org/freecore/ports.git",
+      "branch": "source/15.0-U1.7",
+      "commit": "adc232ca6f88fbd7bd7c8af3c214595f3f305f0a",
+      "tree": "f1cb81825a62e85e6c80148f8ed5e67d5b061ae9"
+    },
+    {
+      "name": "py-bsd",
+      "path": "py-bsd",
+      "url": "https://codeberg.org/freecore/py-bsd.git",
+      "branch": "main",
+      "commit": "7a193df164d795b5ec7da2ebb5002697c636cf4b",
+      "tree": "bcdf69b9c43c77c484437b71413430919a00c57f"
+    },
+    {
+      "name": "py-cam",
+      "path": "py-cam",
+      "url": "https://codeberg.org/freecore/py-cam.git",
+      "branch": "main",
+      "commit": "22ee34c95b98127d8a8d2c726f2bf7ea2055b9cb",
+      "tree": "70c065ab14ce525458efc6e3181e1f033eafd95b"
+    },
+    {
+      "name": "py-netif",
+      "path": "py-netif",
+      "url": "https://codeberg.org/freecore/py-netif.git",
+      "branch": "main",
+      "commit": "f077fc3b269c3fa10a15776c97effd03805e9764",
+      "tree": "a7692bee76bbd76d7c96228117189fe7afd4ce2c"
+    },
+    {
+      "name": "py-libzfs",
+      "path": "py-libzfs",
+      "url": "https://codeberg.org/freecore/py-libzfs.git",
+      "branch": "main",
+      "commit": "38b256dbf74a6bfa7c878fbe4976ad93f08558cb",
+      "tree": "10c7d3a01250db88e703eb201ed401295e474b32"
+    },
+    {
+      "name": "samba",
+      "path": "samba",
+      "url": "https://github.com/truenas/samba.git",
+      "branch": "truenas/v4-24-stable",
+      "commit": "e7df0a31a95db824642546bb32ad73b25fcc660a",
+      "tree": "22c89c9a2951b2f1a84b38b641186d891128470e",
+      "delta_url": "https://codeberg.org/freecore/samba/raw/tag/v15.0-U1.7/0001-freecore-samba-release-delta.patch",
+      "delta_filename": "0001-freecore-samba-release-delta.patch",
+      "delta_sha256": "b67f0ac0cba02cc95b78a7d8d9381dd449e4487aa6c389a79362028c0338c5a1",
+      "materialized_commit_date": "2026-08-21T12:00:00+02:00"
+    },
+    {
+      "name": "py-licenselib",
+      "path": "py-licenselib",
+      "url": "https://github.com/truenas/licenselib.git",
+      "branch": "truenas/13.3-stable",
+      "commit": "4a264d3d9210d6b46e3ac97b31357024c6c124f6",
+      "tree": "b84aaf99eb883c2b7d7901baab9bd2fb618c0db3"
+    },
+    {
+      "name": "freenas-pkgtools",
+      "path": "freenas-pkgtools",
+      "url": "https://codeberg.org/freecore/freenas-pkgtools.git",
+      "branch": "main",
+      "commit": "b6b99f18afb4cdf5a6cafecc589cbff16dacd3b1",
+      "tree": "eb19145ed3548e8bcb851c5a529e2e308c998e1c"
+    },
+    {
+      "name": "iocage",
+      "path": "iocage",
+      "url": "https://codeberg.org/freecore/iocage.git",
+      "branch": "main",
+      "commit": "cebd874609604bad3ba32168f3ec7a7f99482b80",
+      "tree": "d66b94ea19bccbbf6fc5ad3aee8ab9e293a48861"
+    }
+  ]
+}
