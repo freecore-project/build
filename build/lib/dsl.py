@@ -128,23 +128,21 @@ class GlobalsWrapper(dict):
 
 
 class AstTransformer(ast.NodeTransformer):
-    def visit_Str(self, node):
-        return ast.Call(
-            func=ast.Name(id='e', ctx=ast.Load()),
-            args=[node],
-            keywords=[],
-            starargs=None,
-            kwargs=None
-        )
+    def visit_Constant(self, node):
+        if isinstance(node.value, str):
+            return ast.Call(
+                func=ast.Name(id='e', ctx=ast.Load()),
+                args=[node],
+                keywords=[]
+            )
+        return node
 
     def visit_List(self, node):
         self.generic_visit(node)
         return ast.Call(
             func=ast.Name(id='ConfigArray', ctx=ast.Load()),
             args=[node],
-            keywords=[],
-            starargs=None,
-            kwargs=None
+            keywords=[]
         )
 
     def visit_Dict(self, node):
@@ -152,9 +150,7 @@ class AstTransformer(ast.NodeTransformer):
         return ast.Call(
             func=ast.Name(id='ConfigDict', ctx=ast.Load()),
             args=[node],
-            keywords=[],
-            starargs=None,
-            kwargs=None
+            keywords=[]
         )
 
 
